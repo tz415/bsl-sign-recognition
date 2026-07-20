@@ -7,12 +7,12 @@ Project setup and research.
 
 ## Planned stages
 
--> Capture webcam footage
--> Detect hand landmarks
--> Collect labelled sign data
--> Train a classification model
--> Display real-time predictions
--> Evaluate the system on different users
+- Capture webcam footage
+- Detect hand landmarks
+- Collect labelled sign data
+- Train a classification model
+- Display real-time predictions
+- Evaluate the system on different users
 
 ## Scope
 
