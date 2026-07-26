@@ -5,11 +5,17 @@ camera = cv2.VideoCapture(0)
 if not camera.isOpened():
     raise RuntimeError("could not open camera 0")
 
-success, frame = camera.read()
-camera.release()
+try:
+    while True:
+        success, frame = camera.read()
 
-if not success:
-    raise RuntimeError("camera opened, but no frame was captured")
+        if not success:
+            raise RuntimeError("frame could not be captured")
 
-height, width, channels = frame.shape
-print(f"captured frame: {width}x{height}, {channels} channels")
+        cv2.imshow("C922 Test", frame)
+        key = cv2.waitKey(1) & 0xFF
+        if key == ord("q") or key == ord("Q"):
+            break
+finally:
+    camera.release()
+    cv2.destroyAllWindows()
