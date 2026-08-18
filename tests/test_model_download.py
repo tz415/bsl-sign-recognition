@@ -1,5 +1,3 @@
-"""Tests for model-file integrity helpers."""
-
 import hashlib
 import unittest
 from pathlib import Path
