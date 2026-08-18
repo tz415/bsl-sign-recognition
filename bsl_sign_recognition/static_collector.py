@@ -1,5 +1,3 @@
-"""Collect labelled, single-frame BSL fingerspelling landmark samples."""
-
 from __future__ import annotations
 
 import argparse
