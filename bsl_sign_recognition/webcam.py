@@ -1,5 +1,3 @@
-"""Live webcam capture and MediaPipe hand-landmark visualisation."""
-
 from __future__ import annotations
 
 import time
