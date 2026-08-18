@@ -1,5 +1,3 @@
-"""Tests for pure handedness-calibration helpers."""
-
 import unittest
 
 from bsl_sign_recognition.handedness import (
