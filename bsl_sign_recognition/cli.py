@@ -1,5 +1,3 @@
-"""Command-line interface for the live webcam prototype."""
-
 from __future__ import annotations
 
 import argparse
