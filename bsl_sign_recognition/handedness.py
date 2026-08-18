@@ -1,13 +1,9 @@
-"""Pure helpers for evaluating MediaPipe handedness predictions."""
-
 from __future__ import annotations
-
 import math
 from collections import Counter
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any
-
 
 def canonical_hand(value: str) -> str:
     """Return a canonical hand label."""
@@ -17,7 +13,6 @@ def canonical_hand(value: str) -> str:
     if normalised == "right":
         return "Right"
     return "Unknown"
-
 
 @dataclass
 class HandednessAccumulator:
@@ -72,7 +67,6 @@ class HandednessAccumulator:
             "mean_model_confidence": self.confidence_total / observed,
         }
 
-
 def evaluate_calibration(
     results: list[dict[str, Any]],
     threshold: float = 0.9,
@@ -101,7 +95,6 @@ def evaluate_calibration(
     if labels_reversed:
         return "labels_are_reversed"
     return "labels_are_inconsistent"
-
 
 def build_calibration_report(
     accumulators: list[HandednessAccumulator],
