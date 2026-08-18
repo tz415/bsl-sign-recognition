@@ -216,3 +216,13 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Downloaded ML models and locally captured test images
+models/*.task
+models/*.task.part
+captures/
+
+# Locally collected participant data and audit images
+data/raw/
+data/rejected/
+data/calibration/
