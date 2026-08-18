@@ -1,5 +1,3 @@
-"""tests for the static data collector's pure data helpers"""
-
 import unittest
 from datetime import datetime, timezone
 from pathlib import Path
