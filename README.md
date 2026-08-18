@@ -1,29 +1,27 @@
 # BSL sign recognition
 
-A Python project for recognising British Sign Language (BSL) 
-signs from a webcam and displaying them as text.
+A Python project exploring recognition of British Sign Language (BSL) signs from a webcam.
 
-## Current milestone
+I'm currently working with MediaPipe to track hand landmarks and collect labelled data, with the aim of training a classifier to recognise a small set of signs.
 
-The core webcam and two-hand landmark pipeline has passed an initial hardware
-smoke test. It uses MediaPipe Hand Landmarker to display 21 landmarks per hand,
-reports the measured processing rate, and can save annotated experiment
-snapshots.
+## Current progress
 
-The current milestone is a hardware check of the refactored static-pose collector
-and handedness calibration. The collector requires two hands to remain stable
-across a short quality-check window, but it saves only one landmark pose. It does
-not store a motion sequence or video.
+The webcam pipeline can currently:
+- detect and track two hands
+- extract 21 landmarks from each hand
+- display the landmarks in real time
+- show the processing frame rate
+- save annotated snapshots
 
-This pretrained MediaPipe model is a **landmark extractor**, not the BSL
-classifier. A later stage will train and evaluate a separate classifier on
-labelled BSL data.
+I've also started building the data collection pipeline. The first dataset will use five static two-handed fingerspelling letters: `A`, `B`, `C`, `L`, and `V`.
 
-## Quick start
+Before collecting the dataset, I'm testing MediaPipe's handedness predictions and checking that the collector saves poses consistently.
+
+## Setup
 
 Python 3.12 is recommended.
 
-### Windows PowerShell
+### Windows
 
 ```powershell
 py -3.12 -m venv .venv
@@ -34,7 +32,7 @@ python download_model.py
 python main.py
 ```
 
-### macOS or Linux
+### macOS / Linux
 
 ```bash
 python3.12 -m venv .venv
@@ -45,127 +43,103 @@ python download_model.py
 python main.py
 ```
 
-The model downloader uses a versioned official MediaPipe model URL and verifies
-the downloaded file with SHA-256 before installing it.
+## Webcam
 
-## Using the webcam prototype
-
-The defaults request 1280×720 at 30 FPS, a sensible starting point for a Logitech
-C922. Camera drivers can negotiate different values; the program prints the
-actual resolution and frame rate reported by the driver.
-
-Controls:
-
-- `Q` or `Esc`: quit
-- `S`: save an annotated snapshot under `captures/`
-
-Useful options:
+Run the webcam prototype with:
 
 ```bash
-# Use a second connected camera
-python main.py --camera 1
+python main.py
+```
 
-# Test the C922's 1080p mode
+The default camera settings are 1280×720 at 30 FPS. These can be changed from the command line:
+
+```bash
 python main.py --width 1920 --height 1080 --fps 30
+```
 
-# Test the C922's higher-frame-rate 720p mode
-python main.py --width 1280 --height 720 --fps 60
+Use another connected camera with:
 
-# Process the unmirrored camera image
-python main.py --no-mirror
+```bash
+python main.py --camera 1
+```
 
-# List every option
+Other options can be found with:
+
+```bash
 python main.py --help
 ```
 
-If the camera cannot be opened, close Logitech Capture, Discord, browser video
-calls, or any other program that may be using it. Then try `--camera 1` if the
-computer also has a built-in camera.
+### Controls
 
-## Pipeline
+- `Q` or `Esc` — quit
+- `S` — save an annotated snapshot to `captures/`
+
+## Hand tracking pipeline
 
 ```text
 webcam frame
-    → colour conversion
-    → MediaPipe two-hand landmark tracking
-    → 21 (x, y, z) landmarks per detected hand
-    → on-screen skeleton and diagnostics
+    → MediaPipe Hand Landmarker
+    → 21 (x, y, z) landmarks per hand
+    → landmark data / on-screen skeleton
 ```
 
-The next data milestone collects one static two-hand landmark pose per sample,
-starting with five BSL fingerspelling letters. Each capture also stores a local
-hand-region audit image so labels can be checked before training. Raw participant
-data stays out of Git. Motion sequences are a later, separate milestone.
+## Handedness calibration
 
-First measure handedness behaviour with a normal open palm:
+Before collecting data, I use a short calibration test to check how MediaPipe labels my left and right hands:
 
 ```bash
 python calibrate_handedness.py
 ```
 
-The program guides you through 100 accepted frames of your physical right hand,
-then 100 of your physical left hand. It saves only aggregate prediction counts
-and confidence values under `data/calibration/`; it does not save camera frames.
-This determines whether the previous wrong-hand result was gesture-specific,
-consistently reversed, or inconsistent.
+The test records MediaPipe's predictions for each hand and saves the results to `data/calibration/`.
 
-Run the static collector with:
+## Collecting samples
+
+Start the static-pose collector with:
 
 ```bash
 python collect_data.py --participant p001
 ```
 
-Use `1`–`5` to select `A`, `B`, `C`, `L`, or `V`, hold the pose, and press
-`Space`. Use the [UCL BSL SignBank two-handed fingerspelling
-reference](https://bslsignbank.ucl.ac.uk/spell/twohanded.html) rather than guessing
-the handshape. A capture is saved only after exactly two hands remain below the
-movement threshold for 12 consecutive frames. The middle frame becomes the one
-static sample; surrounding frames are discarded.
+The current pilot uses the letters `A`, `B`, `C`, `L`, and `V`.
 
-Controls:
+I use the [UCL BSL SignBank two-handed fingerspelling reference](https://bslsignbank.ucl.ac.uk/spell/twohanded.html) when checking the handshapes.
 
-- `1`–`5`: select `A`, `B`, `C`, `L`, or `V`
-- `Space`: start a capture
-- `R`: move the most recent bad capture from `data/raw/` to `data/rejected/`
-- `Q` or `Esc`: quit
+### Controls
 
-Every JSON sample contains `sample_type: "static_pose"`, two sets of 21 image and
-world landmarks, capture metadata, and the measured stability score. It contains
-no `frames` array or recording duration. MediaPipe handedness remains explicitly
-marked as unverified metadata until the calibration is reviewed.
+- `1`–`5` — select `A`, `B`, `C`, `L`, or `V`
+- `Space` — capture a sample
+- `R` — reject the most recent capture
+- `Q` or `Esc` — quit
 
-For the first hardware check, save only one correct `A` sample. Confirm that its
-JSON and cropped audit image agree before collecting a pilot dataset. Audit images
-can still contain identifiable imagery if hands are held near a face, so review
-them locally and never commit raw participant data.
+A sample is accepted once both hands have remained sufficiently stable for several frames. The collector then saves the landmarks from a single frame along with information about the capture.
 
-## Planned stages
+For now I'm only collecting static poses. Motion-based signs will require sequences of landmarks and will be explored later. Data that I collected personally and audit images are kept out of the Git repository.
 
-- [x] Verify core webcam capture and live hand-landmark detection
-- [x] Select five static two-handed fingerspelling classes for the pilot
-- [ ] Hardware-test handedness calibration and the refactored static collector
-- [ ] Collect and evaluate labelled static poses with consent
-- [ ] Train a baseline classifier
-- [ ] Add landmark sequences and temporal features for moving signs
-- [ ] Display stable real-time predictions
-- [ ] Evaluate on unseen signers and document limitations
+## Project plan
 
-## Reproducibility
+- [x] Set up webcam capture
+- [x] Add live hand-landmark detection
+- [x] Choose an initial set of static fingerspelling signs
+- [ ] Test handedness calibration and data collection
+- [ ] Collect a pilot dataset
+- [ ] Train and evaluate a baseline classifier
+- [ ] Investigate moving signs using landmark sequences
+- [ ] Add stable real-time predictions
+- [ ] Test performance on unseen signers
 
-Run the dependency-free tests with:
+## Tests
+
+Run the tests with:
 
 ```bash
 python -m unittest discover -s tests -v
 ```
 
-Hardware observations and experiments are recorded in
-[`docs/experiment-log.md`](docs/experiment-log.md). Recording failed attempts and
-measured trade-offs is part of the project, not something to hide.
+Notes from hardware tests and experiments are kept in [docs/experiment-log.md](docs/experiment-log.md).
 
-## Scope and limitations
+## Limitations
 
-The initial system will recognise only a deliberately small vocabulary of isolated
-BSL signs. It is not a complete BSL translator, is not intended to replace
-interpreters, and should not be relied on for important communication. Performance
-must be tested across signers, lighting, backgrounds, camera positions, and signing
-styles before any claims are made.
+This is an experimental project using a small set of isolated BSL signs rather than a complete BSL translation system.
+
+One of the main things I want to explore is how far can a model trained on landmark data works on different people and different recording conditions.
