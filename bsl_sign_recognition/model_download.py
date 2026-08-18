@@ -1,5 +1,3 @@
-"""Download and verify the pinned MediaPipe hand-landmarker model."""
-
 from __future__ import annotations
 
 import argparse
