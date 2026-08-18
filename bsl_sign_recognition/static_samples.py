@@ -1,5 +1,3 @@
-"""Pure data helpers for versioned static landmark samples."""
-
 from __future__ import annotations
 
 import math
