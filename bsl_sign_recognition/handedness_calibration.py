@@ -1,5 +1,3 @@
-"""Run an interactive MediaPipe handedness calibration."""
-
 from __future__ import annotations
 
 import argparse
